@@ -32,5 +32,14 @@ namespace SeatReservationV1.Controllers
                 return Ok(await _userManager.LoginAsync(login.PhoneNumber, login.Password));
             });
         }
+        
+        [HttpGet(nameof(Get))]
+        public async Task<IActionResult> Get([FromHeader] int userId)
+        {
+            return await Execute(async () =>
+            {
+                return Ok(await _userManager.GetAsync(GetUserId()));
+            });
+        }
     }
 }

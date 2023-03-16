@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SeatReservationV1.Extensions;
 using System.Net;
 
 namespace SeatReservationV1.Controllers
@@ -25,5 +26,7 @@ namespace SeatReservationV1.Controllers
                 return InternalServerError();
             }
         }
+
+        protected int GetUserId() => HttpContext.Request.GetUserIdFromHeader();
     }
 }

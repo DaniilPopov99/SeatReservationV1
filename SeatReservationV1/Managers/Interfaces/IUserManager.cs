@@ -6,5 +6,6 @@ namespace SeatReservationV1.Managers.Interfaces
     {
         Task<int> RegisterAsync(RegisterUserVM userVM);
         Task<int> LoginAsync(string phoneNumber, string password);
+        Task<UserVM> GetAsync(int userId);
     }
 }

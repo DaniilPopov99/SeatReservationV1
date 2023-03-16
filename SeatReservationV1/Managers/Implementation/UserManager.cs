@@ -35,5 +35,19 @@ namespace SeatReservationV1.Managers.Implementation
 
             return userId.Value;
         }
+
+        public async Task<UserVM> GetAsync(int userId)
+        {
+            var user = await _usersRepository.GetAsync(userId);
+            if (user == null)
+                throw new Exception();
+
+            return new UserVM
+            {
+                Id = user.Id,
+                PhoneNumber = user.PhoneNumber,
+                FIO = user.Surname + ' ' + user.Name + (!string.IsNullOrEmpty(user.Patronymic) ? $" {user.Patronymic}" : string.Empty)
+            };
+        }
     }
 }

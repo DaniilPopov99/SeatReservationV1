@@ -17,6 +17,11 @@ namespace SeatReservationV1.Extensions
         public static IServiceCollection AddRepositories(this IServiceCollection services, string connectionString)
         {
             services.AddScoped(provider => new UsersRepository(connectionString));
+            services.AddScoped(provider => new RestaurantsRepository(connectionString));
+            services.AddScoped(provider => new OrdersRepository(connectionString));
+            services.AddScoped(provider => new ImagesToRestaurantsRepository(connectionString));
+            services.AddScoped(provider => new ImagesRepository(connectionString));
+            services.AddScoped(provider => new FavoritesRestaurantsRepository(connectionString));
 
             return services;
         }
@@ -24,7 +29,8 @@ namespace SeatReservationV1.Extensions
         public static IServiceCollection AddManagers(this IServiceCollection services)
         {
             services.AddScoped<IUserManager, UserManager>();
-
+            services.AddScoped<IRestaurantManager, RestaurantManager>();
+            
             return services;
         }
     }

@@ -24,5 +24,19 @@ namespace SeatReservationV1.Repositories
 
             return await Db.QueryFirstOrDefaultAsync<int?>(sqlCommand);
         }
+
+        public async Task<UserEntity> GetAsync(int id)
+        {
+            var sqlCommand = new CommandDefinition(@"
+                SELECT * 
+                FROM Users
+                WHERE Id = @id",
+                new
+                {
+                    @id = id
+                });
+
+            return await Db.QueryFirstOrDefaultAsync<UserEntity>(sqlCommand);
+        }
     }
 }
