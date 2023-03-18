@@ -9,5 +9,6 @@ namespace SeatReservationV1.Models.Entities
         public string Name { get; set; }
         public byte[] Content { get; set; }
         public DateTime CreateDate { get; set; }
+        public Guid Guid { get; set; }
     }
 }

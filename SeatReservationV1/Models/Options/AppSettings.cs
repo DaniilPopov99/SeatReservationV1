@@ -2,6 +2,7 @@
 {
     public class AppSettings
     {
-        public string Test { get; set; }
+        public string FileService { get; set; }
+        public string ImageSaveDir { get; set; }
     }
 }

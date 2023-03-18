@@ -18,7 +18,7 @@ namespace SeatReservationV1.Repositories
             var sqlCommand = new CommandDefinition($@"
                 SELECT *
                 FROM Restaurants
-                WHERE 1 = 1
+                WHERE IsActive = 1
                     {filterCondition}
                 ORDER BY Id
                 OFFSET @skip ROWS

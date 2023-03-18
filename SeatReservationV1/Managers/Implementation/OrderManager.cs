@@ -28,7 +28,8 @@ namespace SeatReservationV1.Managers.Implementation
                 Date = createModel.Date,
                 CreateDate = DateTime.UtcNow,
                 PersonCount = createModel.PersonCount,
-                Comment = createModel.Comment
+                Comment = createModel.Comment,
+                IsActive = true
             });
         }
 
@@ -55,9 +56,6 @@ namespace SeatReservationV1.Managers.Implementation
 
         public async Task<IEnumerable<OrderVM>> GetHistoryAsync(int take, int skip, int userId)
         {
-            if (take <= 0)
-                return Enumerable.Empty<OrderVM>();
-
             var orders = await _ordersRepository.GetInactiveAsync(take, skip, userId);
             if (!orders.HasElement())
                 return Enumerable.Empty<OrderVM>();

@@ -32,5 +32,34 @@ namespace SeatReservationV1.Controllers
                 return Ok(await _restaurantManager.GetByFilterAsync(filter));
             });
         }
+
+        [HttpPost(nameof(AddToFavorites))]
+        public async Task<IActionResult> AddToFavorites([Range(1, int.MaxValue)] int restaurantId, [FromHeader] int userId)
+        {
+            return await Execute(async () =>
+            {
+                await _restaurantManager.AddToFavoritesAsync(GetUserId(), restaurantId);
+                return Ok();
+            });
+        }
+
+        [HttpPost(nameof(RemoveFromFavorites))]
+        public async Task<IActionResult> RemoveFromFavorites([Range(1, int.MaxValue)] int restaurantId, [FromHeader] int userId)
+        {
+            return await Execute(async () =>
+            {
+                await _restaurantManager.RemoveFromFavoritesAsync(GetUserId(), restaurantId);
+                return Ok();
+            });
+        }
+
+        [HttpGet(nameof(GetFavorites) + "/{take}/{skip}")]
+        public async Task<IActionResult> GetFavorites([FromRoute, Range(1, int.MaxValue)] int take, [FromRoute, Range(0, int.MaxValue)] int skip, [FromHeader] int userId)
+        {
+            return await Execute(async () =>
+            {
+                return Ok(await _restaurantManager.GetFavoritesAsync(take, skip, GetUserId()));
+            });
+        }
     }
 }

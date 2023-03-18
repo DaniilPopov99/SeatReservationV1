@@ -30,6 +30,8 @@ namespace SeatReservationV1.Extensions
         {
             services.AddScoped<IUserManager, UserManager>();
             services.AddScoped<IRestaurantManager, RestaurantManager>();
+            services.AddScoped<IOrderManager, OrderManager>();
+            services.AddScoped<IRestaurantImageManager, RestaurantImageManager>();
             
             return services;
         }
