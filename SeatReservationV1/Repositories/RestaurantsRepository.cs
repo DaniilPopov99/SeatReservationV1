@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using SeatReservationCore.Extensions;
 using SeatReservationCore.Repositories;
 using SeatReservationV1.Models.Entities;
 
@@ -26,6 +27,21 @@ namespace SeatReservationV1.Repositories
                 {
                     @take = take,
                     @skip = skip
+                });
+
+            return await Db.QueryAsync<RestaurantEntity>(sqlCommand);
+        }
+
+        public async Task<IEnumerable<RestaurantEntity>> GetByIdsAsync(IEnumerable<int> restaurantIds)
+        {
+            var sqlCommand = new CommandDefinition($@"
+                SELECT 
+                    restaurants.*
+                FROM @restaurantIds ids
+                INNER JOIN Restaurants restaurants ON restaurants.Id = ids.Id",
+                new
+                {
+                    @restaurantIds = restaurantIds.AsIntList()
                 });
 
             return await Db.QueryAsync<RestaurantEntity>(sqlCommand);

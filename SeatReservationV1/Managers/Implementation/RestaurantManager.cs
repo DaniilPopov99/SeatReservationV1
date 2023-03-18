@@ -44,12 +44,15 @@ namespace SeatReservationV1.Managers.Implementation
 
         public async Task<IEnumerable<RestaurantVM>> GetByFilterAsync(RestaurantsFilterVM filter)
         {
+            IEnumerable<int> restaurantIdsByImages = null;
+
             if (filter.ImageId > 0)
             {
-                //TODO нужно получить фотки из бд которые больше всего похожи на эту фотографию
+                var images = new int[] { }; //TODO нужно получить фотки из бд которые больше всего похожи на эту фотографию
+                restaurantIdsByImages = images;
             }
 
-            var restaurants = await _restaurantsRepository.GetByFilterAsync(filter.Take, filter.Skip, filter.Filter);
+            var restaurants = await _restaurantsRepository.GetByFilterAsync(filter.Take, filter.Skip, filter.Filter, restaurantIdsByImages);
 
             return restaurants.Select(restaurant => new RestaurantVM 
             {
@@ -60,6 +63,16 @@ namespace SeatReservationV1.Managers.Implementation
                 PhoneNumber = restaurant.PhoneNumber,
                 ImageUrl = string.Empty
             });
+        }
+
+        public async Task<IEnumerable<RestaurantBaseVM>> GetBaseAsync(IEnumerable<int> restaurantIds)
+        {
+            if (!restaurantIds.HasElement())
+                return Enumerable.Empty<RestaurantBaseVM>();
+
+            var restaurants = await _restaurantsRepository.GetByIdsAsync(restaurantIds);
+
+            return restaurants.Select(restaurant => new RestaurantBaseVM(restaurant.Id, restaurant.Name, restaurant.Address + ' ' + restaurant.House, string.Empty));
         }
     }
 }
