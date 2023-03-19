@@ -26,5 +26,36 @@ namespace SeatReservationV1.Repositories
 
             return await Db.QueryAsync<KeyValuePair<int, Guid>>(sqlCommand);
         }
+
+        public async Task<IEnumerable<KeyValuePair<int, byte[]>>> GetImageIdsToContentsAsync(IEnumerable<int> imageIds)
+        {
+            var sqlCommand = new CommandDefinition($@"
+                SELECT DISTINCT
+                    i.Id AS [Key],
+                    i.[Content] AS [Value]
+                FROM @imageIds ids
+                INNER JOIN Images i ON i.Id = ids.Id",
+                new
+                {
+                    @imageIds = imageIds.AsIntList()
+                });
+
+            return await Db.QueryAsync<KeyValuePair<int, byte[]>>(sqlCommand);
+        }
+
+        public async Task<IEnumerable<int>> GetRestaurantsByImagesAsync(IEnumerable<int> imageIds)
+        {
+            var sqlCommand = new CommandDefinition($@"
+                SELECT
+                    itr.RestaurantId
+                FROM @imageIds ids
+                INNER JOIN ImagesToRestaurants itr ON itr.ImageId = ids.Id",
+                new
+                {
+                    @imageIds = imageIds.AsIntList()
+                });
+
+            return await Db.QueryAsync<int>(sqlCommand);
+        }
     }
 }

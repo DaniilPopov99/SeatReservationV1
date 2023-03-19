@@ -25,5 +25,22 @@ namespace SeatReservationV1.Repositories
 
             return await Db.QueryFirstOrDefaultAsync<byte[]>(sqlCommand);
         }
+
+        public async Task<byte[]> GetByImageIdAsync(int imageId, Guid guid)
+        {
+            var sqlCommand = new CommandDefinition($@"
+                SELECT 
+                    i.[Content]
+                FROM Images i
+                WHERE i.Guid = @guid
+                    AND i.Id = @imageId",
+                new
+                {
+                    @imageId = imageId,
+                    @guid = guid
+                });
+
+            return await Db.QueryFirstOrDefaultAsync<byte[]>(sqlCommand);
+        }
     }
 }

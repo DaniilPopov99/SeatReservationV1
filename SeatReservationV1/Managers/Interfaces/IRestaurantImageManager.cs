@@ -6,5 +6,6 @@ namespace SeatReservationV1.Managers.Interfaces
     {
         Task<ImageVM> UploadAsync(UploadImageVM uploadModel);
         Task<byte[]> GetAsync(int restaurantId, Guid guid);
+        Task<byte[]> GetByImageIdAsync(int imageId, Guid guid);
     }
 }

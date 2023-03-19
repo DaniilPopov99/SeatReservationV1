@@ -9,7 +9,7 @@ namespace SeatReservationV1.Repositories
     {
         public RestaurantsRepository(string connectionString) : base(connectionString) { }
 
-        public async Task<IEnumerable<RestaurantEntity>> GetByFilterAsync(int take, int skip, string filter = null, IEnumerable<int> ids = null)
+        public async Task<IEnumerable<RestaurantEntity>> GetByFilterAsync(int take, int skip, string filter = null)
         {
             var filterCondition = !string.IsNullOrEmpty(filter) 
                 ? $@"AND (Restaurants.Name LIKE '%{filter}%' OR Restaurants.Description LIKE '%{filter}%' OR Restaurants.Address LIKE '%{filter}%')"

@@ -1,26 +1,35 @@
 ﻿using SeatReservationCore.Extensions;
 using SeatReservationCore.Helpers;
 using SeatReservationV1.Managers.Interfaces;
+using SeatReservationV1.Microservices.Interfaces;
 using SeatReservationV1.Models.Entities;
 using SeatReservationV1.Models.Options;
 using SeatReservationV1.Models.Presentation;
 using SeatReservationV1.Repositories;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace SeatReservationV1.Managers.Implementation
 {
     public class RestaurantManager : IRestaurantManager
     {
         private readonly AppSettings _appSettings;
+
+        private readonly ISimilarImagesMicroservice _similarImagesMicroservice;
+
         private readonly RestaurantsRepository _restaurantsRepository;
         private readonly ImagesToRestaurantsRepository _imagesToRestaurantsRepository;
         private readonly FavoritesRestaurantsRepository _favoritesRestaurantsRepository;
 
         public RestaurantManager(AppSettings appSettings,
+            ISimilarImagesMicroservice similarImagesMicroservice,
             RestaurantsRepository restaurantsRepository,
             ImagesToRestaurantsRepository imagesToRestaurantsRepository,
             FavoritesRestaurantsRepository favoritesRestaurantsRepository)
         {
             _appSettings = appSettings;
+            _similarImagesMicroservice = similarImagesMicroservice;
             _restaurantsRepository = restaurantsRepository;
             _imagesToRestaurantsRepository = imagesToRestaurantsRepository;
             _favoritesRestaurantsRepository = favoritesRestaurantsRepository;
@@ -47,6 +56,22 @@ namespace SeatReservationV1.Managers.Implementation
                     ImageId = imageId,
                     IsActive = true
                 }));
+
+                var imageIdsToContents = await _imagesToRestaurantsRepository.GetImageIdsToContentsAsync(createModel.ImageIds);
+
+                foreach (var item in imageIdsToContents)
+                {
+                    //TODO сохраняем локально для обработки изображений ИИ(пока не реализовывал другую логику)
+                    var localName = $"{item.Key}.jpg";
+                    var fileSavePath = Path.Combine(_appSettings.ImageSaveDir, localName);
+
+                    MemoryStream memoryStream = new MemoryStream(item.Value);
+                    Image image = Image.FromStream(memoryStream);
+
+                    image.Save(fileSavePath, ImageFormat.Jpeg);
+                }
+
+                _similarImagesMicroservice.IndexingAsync();
             }
 
             return restaurantId;
@@ -54,15 +79,23 @@ namespace SeatReservationV1.Managers.Implementation
 
         public async Task<IEnumerable<RestaurantVM>> GetByFilterAsync(RestaurantsFilterVM filter)
         {
-            IEnumerable<int> restaurantIdsByImages = null;
+            IEnumerable<RestaurantEntity> restaurants = null;
 
             if (filter.ImageId > 0)
             {
-                var images = new int[] { }; //TODO нужно получить фотки из бд которые больше всего похожи на эту фотографию
-                restaurantIdsByImages = images;
+                var imageIds = await _similarImagesMicroservice.SearchAsync(filter.ImageId.Value);
+                if (!imageIds.HasElement())
+                    return Enumerable.Empty<RestaurantVM>();
+
+                var restaurantIdsByImages = await _imagesToRestaurantsRepository.GetRestaurantsByImagesAsync(imageIds);
+
+                restaurants = await _restaurantsRepository.GetByIdsAsync(restaurantIdsByImages);
             }
 
-            var restaurants = await _restaurantsRepository.GetByFilterAsync(filter.Take, filter.Skip, filter.Filter, restaurantIdsByImages);
+            restaurants = filter.ImageId > 0
+                ? restaurants
+                : await _restaurantsRepository.GetByFilterAsync(filter.Take, filter.Skip, filter.Filter);
+
             if (!restaurants.HasElement())
                 return Enumerable.Empty<RestaurantVM>();
 

@@ -33,7 +33,7 @@ namespace SeatReservationV1.Controllers
 
                 return Ok(await _restaurantImageManager.UploadAsync(new UploadImageVM 
                 {
-                    Name = GetByKey("FileName"),//"FileName.jpg",//MultipartRequestHelper.TryGetMultipartSectionHeaderValue<string>(section, "FileName"),
+                    Name = GetByKey("FileName"),
                     Content = fileContent
                 }));
             });
@@ -45,6 +45,21 @@ namespace SeatReservationV1.Controllers
             return await Execute(async () =>
             {
                 var result = await _restaurantImageManager.GetAsync(restaurantId, guid);
+                if (!result.HasElement())
+                {
+                    throw new Exception();
+                }
+
+                return File(result, "image/jpeg");
+            });
+        }
+
+        [HttpGet(nameof(GetImage) + "/{imageId}/{guid}")]
+        public async Task<IActionResult> GetImage([FromRoute, Range(1, int.MaxValue)] int imageId, [FromRoute] Guid guid)
+        {
+            return await Execute(async () =>
+            {
+                var result = await _restaurantImageManager.GetByImageIdAsync(imageId, guid);
                 if (!result.HasElement())
                 {
                     throw new Exception();

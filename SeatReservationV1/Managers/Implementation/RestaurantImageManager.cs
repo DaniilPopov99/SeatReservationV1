@@ -1,4 +1,5 @@
-﻿using SeatReservationV1.Managers.Interfaces;
+﻿using SeatReservationCore.Helpers;
+using SeatReservationV1.Managers.Interfaces;
 using SeatReservationV1.Models.Entities;
 using SeatReservationV1.Models.Options;
 using SeatReservationV1.Models.Presentation;
@@ -23,17 +24,19 @@ namespace SeatReservationV1.Managers.Implementation
 
         public async Task<ImageVM> UploadAsync(UploadImageVM uploadModel)
         {
+            var guid = Guid.NewGuid();
+
             var imageId = await _imagesRepository.CreateAsync(new ImageEntity 
             {
                 Name = uploadModel.Name,
                 Content = uploadModel.Content,
                 CreateDate = DateTime.UtcNow,
-                Guid = Guid.NewGuid()
+                Guid = guid
             });
 
             //TODO сохраняем локально для обработки изображений ИИ(пока не реализовывал другую логику)
             var localName = $"{imageId}.jpg";
-            var fileSavePath = Path.Combine(_appSettings.ImageSaveDir, localName);
+            var fileSavePath = Path.Combine(_appSettings.AllImageSaveDir, localName);
 
             MemoryStream memoryStream = new MemoryStream(uploadModel.Content);
             Image image = Image.FromStream(memoryStream);
@@ -43,7 +46,7 @@ namespace SeatReservationV1.Managers.Implementation
             return new ImageVM 
             {
                 Id = imageId,
-                Url = "dddddddd"
+                Url = RestaurantImageHelper.GetImageUrl(imageId, _appSettings.FileService, guid)
             };
         }
 
@@ -53,6 +56,14 @@ namespace SeatReservationV1.Managers.Implementation
                 return null;
 
             return await _imagesRepository.GetAsync(restaurantId, guid);
+        }
+
+        public async Task<byte[]> GetByImageIdAsync(int imageId, Guid guid)
+        {
+            if (guid == Guid.Empty)
+                return null;
+
+            return await _imagesRepository.GetByImageIdAsync(imageId, guid);
         }
     }
 }

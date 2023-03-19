@@ -2,7 +2,7 @@
 {
     public interface ISimilarImagesMicroservice
     {
-        Task PostAsync(int model);
-        Task<IEnumerable<int>> GetIdsAsync(int model);
+        Task IndexingAsync();
+        Task<IEnumerable<int>> SearchAsync(int imageId);
     }
 }

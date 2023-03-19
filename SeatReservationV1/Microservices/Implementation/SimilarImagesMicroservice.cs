@@ -14,16 +14,15 @@ namespace SeatReservationV1.Microservices.Implementation
             AppSettings settings,
             IHttpService httpService)
         {
-            _domain = settings.FileService;
+            _domain = settings.SimilarImagesService;
             _httpService = httpService;
         }
 
-        public async Task PostAsync(int model)
-            => HttpResultHelper.DoOrThrowException(
-                await _httpService.ExecutePostAsync($"{_domain}api/Post", model));
+        public async Task IndexingAsync()
+            => await _httpService.ExecuteGetAsync($"{_domain}api/Indexing");
 
-        public async Task<IEnumerable<int>> GetIdsAsync(int model)
+        public async Task<IEnumerable<int>> SearchAsync(int imageId)
             => HttpResultHelper<IEnumerable<int>>.GetResultOrThrow(
-                await _httpService.ExecutePostAsync<IEnumerable<int>>($"{_domain}api/Get", model));
+                await _httpService.ExecuteGetAsync<IEnumerable<int>>($"{_domain}api/Search/{imageId}"));
     }
 }
