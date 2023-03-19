@@ -34,7 +34,7 @@ namespace SeatReservationV1.Controllers
         }
 
         [HttpPost(nameof(AddToFavorites))]
-        public async Task<IActionResult> AddToFavorites([Range(1, int.MaxValue)] int restaurantId, [FromHeader] int userId)
+        public async Task<IActionResult> AddToFavorites([FromBody, Range(1, int.MaxValue)] int restaurantId, [FromHeader] int userId)
         {
             return await Execute(async () =>
             {
@@ -44,7 +44,7 @@ namespace SeatReservationV1.Controllers
         }
 
         [HttpPost(nameof(RemoveFromFavorites))]
-        public async Task<IActionResult> RemoveFromFavorites([Range(1, int.MaxValue)] int restaurantId, [FromHeader] int userId)
+        public async Task<IActionResult> RemoveFromFavorites([FromBody, Range(1, int.MaxValue)] int restaurantId, [FromHeader] int userId)
         {
             return await Execute(async () =>
             {

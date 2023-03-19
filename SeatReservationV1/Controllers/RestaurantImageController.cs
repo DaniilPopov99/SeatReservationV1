@@ -33,7 +33,7 @@ namespace SeatReservationV1.Controllers
 
                 return Ok(await _restaurantImageManager.UploadAsync(new UploadImageVM 
                 {
-                    Name = MultipartRequestHelper.TryGetMultipartSectionHeaderValue<string>(section, "FileName"),
+                    Name = GetByKey("FileName"),//"FileName.jpg",//MultipartRequestHelper.TryGetMultipartSectionHeaderValue<string>(section, "FileName"),
                     Content = fileContent
                 }));
             });

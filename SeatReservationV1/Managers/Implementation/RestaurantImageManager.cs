@@ -21,7 +21,7 @@ namespace SeatReservationV1.Managers.Implementation
             _imagesRepository = imagesRepository;
         }
 
-        public async Task<int> UploadAsync(UploadImageVM uploadModel)
+        public async Task<ImageVM> UploadAsync(UploadImageVM uploadModel)
         {
             var imageId = await _imagesRepository.CreateAsync(new ImageEntity 
             {
@@ -40,7 +40,11 @@ namespace SeatReservationV1.Managers.Implementation
 
             image.Save(fileSavePath, ImageFormat.Jpeg);
 
-            return imageId;
+            return new ImageVM 
+            {
+                Id = imageId,
+                Url = "dddddddd"
+            };
         }
 
         public async Task<byte[]> GetAsync(int restaurantId, Guid guid)

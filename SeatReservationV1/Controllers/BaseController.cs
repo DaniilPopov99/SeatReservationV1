@@ -32,6 +32,8 @@ namespace SeatReservationV1.Controllers
 
         protected int GetUserId() => HttpContext.Request.GetUserIdFromHeader();
 
+        protected string GetByKey(string key) => HttpContext.Request.GetByKeyFromHeader(key);
+
         protected MultipartReader GetMultipartReaderFromRequestBody()
         {
             var boundary = MultipartRequestHelper.GetBoundary(MediaTypeHeaderValue.Parse(Request.ContentType), 70);

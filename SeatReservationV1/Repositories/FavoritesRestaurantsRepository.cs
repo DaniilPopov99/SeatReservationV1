@@ -32,7 +32,7 @@ namespace SeatReservationV1.Repositories
                 FROM FavoritesRestaurants
                 WHERE UserId = @userId
                     AND IsActive = 1
-                ORDER BY Id DESC
+                ORDER BY RestaurantId DESC
                 OFFSET @skip ROWS
                 FETCH NEXT @take ROWS ONLY;",
                 new
