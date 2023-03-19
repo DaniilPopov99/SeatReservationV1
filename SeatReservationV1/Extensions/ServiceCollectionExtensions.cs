@@ -1,5 +1,9 @@
-﻿using SeatReservationV1.Managers.Implementation;
+﻿using SeatReservationCore.Services.Implementation;
+using SeatReservationCore.Services.Interfaces;
+using SeatReservationV1.Managers.Implementation;
 using SeatReservationV1.Managers.Interfaces;
+using SeatReservationV1.Microservices.Implementation;
+using SeatReservationV1.Microservices.Interfaces;
 using SeatReservationV1.Models.Options;
 using SeatReservationV1.Repositories;
 
@@ -33,6 +37,15 @@ namespace SeatReservationV1.Extensions
             services.AddScoped<IOrderManager, OrderManager>();
             services.AddScoped<IRestaurantImageManager, RestaurantImageManager>();
             
+            return services;
+        }
+
+        public static IServiceCollection AddMicroservices(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddHttpClient<IHttpService, HttpService>();
+
+            services.AddScoped<ISimilarImagesMicroservice, SimilarImagesMicroservice>();
+
             return services;
         }
     }
