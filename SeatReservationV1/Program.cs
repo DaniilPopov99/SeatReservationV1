@@ -13,6 +13,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddOptions(builder.Configuration);
 builder.Services.AddRepositories(connectionString);
 builder.Services.AddManagers();
+builder.Services.AddMicroservices();
 
 var app = builder.Build();
 

@@ -40,7 +40,7 @@ namespace SeatReservationV1.Extensions
             return services;
         }
 
-        public static IServiceCollection AddMicroservices(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddMicroservices(this IServiceCollection services)
         {
             services.AddHttpClient<IHttpService, HttpService>();
 
