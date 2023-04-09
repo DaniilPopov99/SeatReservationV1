@@ -1,6 +1,8 @@
 ﻿using Dapper;
+using SeatReservationCore.Extensions;
 using SeatReservationCore.Repositories;
 using SeatReservationV1.Models.Entities;
+using SeatReservationV1.Models.Presentation;
 
 namespace SeatReservationV1.Repositories
 {
@@ -37,6 +39,20 @@ namespace SeatReservationV1.Repositories
                 });
 
             return await Db.QueryFirstOrDefaultAsync<UserEntity>(sqlCommand);
+        }
+
+        public async Task<IEnumerable<UserEntity>> GetAsync(IEnumerable<int> userIds)
+        {
+            var sqlCommand = new CommandDefinition(@"
+                SELECT * 
+                FROM @userIds ids
+                INNER JOIN Users u ON u.Id = ids.Id",
+                new
+                {
+                    @userIds = userIds.AsIntList()
+                });
+
+            return await Db.QueryAsync<UserEntity>(sqlCommand);
         }
     }
 }

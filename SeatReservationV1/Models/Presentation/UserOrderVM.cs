@@ -1,6 +1,6 @@
 ﻿namespace SeatReservationV1.Models.Presentation
 {
-    public class OrderVM
+    public class UserOrderVM
     {
         public int OrderId { get; set; }
         public RestaurantBaseVM Restaurant { get; set; }

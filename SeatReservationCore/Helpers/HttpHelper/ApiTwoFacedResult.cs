@@ -5,7 +5,7 @@ namespace SeatReservationCore.Helpers.HttpHelper
 {
     public class ApiTwoFacedResult<TResult, TError> : ApiBaseResult
     {
-        public Boolean ExistError { get; protected set; } = false;
+        public bool ExistError { get; protected set; } = false;
         public TResult ResultModel { get; protected set; }
         public TError ErrorModel { get; protected set; }
 
@@ -26,6 +26,7 @@ namespace SeatReservationCore.Helpers.HttpHelper
         {
             if (ExistError)
                 return ToErrorResult();
+
             return ToObjectResult();
         }
 
@@ -35,9 +36,8 @@ namespace SeatReservationCore.Helpers.HttpHelper
         private ObjectResult ToObjectResult<T>(T value)
         {
             var objectResult = new ObjectResult(value);
-            objectResult.StatusCode = (Int32)StatusCode;
+            objectResult.StatusCode = (int)StatusCode;
 
-            //fix "Write to non-body 204 response"
             if (StatusCode == HttpStatusCode.NoContent)
                 return new ObjectResult(null);
 

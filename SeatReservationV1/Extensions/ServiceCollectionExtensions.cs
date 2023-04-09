@@ -1,5 +1,7 @@
-﻿using SeatReservationCore.Services.Implementation;
+﻿using AutoMapper;
+using SeatReservationCore.Services.Implementation;
 using SeatReservationCore.Services.Interfaces;
+using SeatReservationV1.AutoMapper;
 using SeatReservationV1.Managers.Implementation;
 using SeatReservationV1.Managers.Interfaces;
 using SeatReservationV1.Microservices.Implementation;
@@ -45,6 +47,20 @@ namespace SeatReservationV1.Extensions
             services.AddHttpClient<IHttpService, HttpService>();
 
             services.AddScoped<ISimilarImagesMicroservice, SimilarImagesMicroservice>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddMapping(this IServiceCollection services)
+        {
+            var mappingConfig = new MapperConfiguration(mc =>
+            {
+                mc.AddProfile(new MappingProfile());
+            });
+
+            var mapper = mappingConfig.CreateMapper();
+
+            services.AddSingleton(mapper);
 
             return services;
         }

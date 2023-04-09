@@ -1,4 +1,5 @@
-﻿using SeatReservationCore.Extensions;
+﻿using AutoMapper;
+using SeatReservationCore.Extensions;
 using SeatReservationV1.Managers.Interfaces;
 using SeatReservationV1.Models.Entities;
 using SeatReservationV1.Models.Presentation;
@@ -8,70 +9,103 @@ namespace SeatReservationV1.Managers.Implementation
 {
     public class OrderManager : IOrderManager
     {
+        private readonly IMapper _mapper;
+
         private readonly IRestaurantManager _restaurantManager;
+        private readonly IUserManager _userManager;
 
         private readonly OrdersRepository _ordersRepository;
 
-        public OrderManager(IRestaurantManager restaurantManager,
+        public OrderManager(IMapper mapper,
+            IRestaurantManager restaurantManager,
+            IUserManager userManager,
             OrdersRepository ordersRepository)
         {
+            _mapper = mapper;
             _restaurantManager = restaurantManager;
+            _userManager = userManager;
             _ordersRepository = ordersRepository;
         }
 
         public async Task<int> CreateAsync(CreateOrderVM createModel, int userId)
         {
-            return await _ordersRepository.CreateAsync(new OrderEntity 
-            { 
-                RestaurantId = createModel.RestaurantId,
-                UserId = userId,
-                Date = createModel.Date,
-                CreateDate = DateTime.UtcNow,
-                PersonCount = createModel.PersonCount,
-                Comment = createModel.Comment,
-                IsActive = true
-            });
+            if (createModel.Date <= DateTime.UtcNow)
+                throw new Exception();
+
+            var orderEntity = _mapper.Map<OrderEntity>(createModel);
+
+            orderEntity.UserId = userId;
+
+            return await _ordersRepository.CreateAsync(orderEntity);
         }
 
-        public async Task<IEnumerable<OrderVM>> GetActiveAsync(int userId)
+        public async Task<IEnumerable<UserOrderVM>> GetActiveAsync(int userId)
         {
             var orders = await _ordersRepository.GetActiveAsync(userId);
+
+            return await ToUserOrdersVMAsync(orders);
+        }
+
+        public async Task<IEnumerable<UserOrderVM>> GetHistoryAsync(int take, int skip, int userId)
+        {
+            var orders = await _ordersRepository.GetInactiveAsync(take, skip, userId);
+
+            return await ToUserOrdersVMAsync(orders);
+        }
+
+        public async Task<IEnumerable<RestaurantOrderVM>> GetActiveByRestaurantIdAsync(int take, int skip, int restaurantId)
+        {
+            var orders = await _ordersRepository.GetActiveByRestaurantAsync(take, skip, restaurantId);
+
+            return await ToRestaurantOrdersVMAsync(orders);
+        }
+
+        public async Task<IEnumerable<RestaurantOrderVM>> GetInactiveByRestaurantIdAsync(int take, int skip, int restaurantId)
+        {
+            var orders = await _ordersRepository.GetInactiveByRestaurantAsync(take, skip, restaurantId);
+
+            return await ToRestaurantOrdersVMAsync(orders);
+        }
+
+        private async Task<IEnumerable<UserOrderVM>> ToUserOrdersVMAsync(IEnumerable<OrderEntity> orders)
+        {
             if (!orders.HasElement())
-                return Enumerable.Empty<OrderVM>();
+                return Enumerable.Empty<UserOrderVM>();
 
             var restaurantIds = orders.Select(s => s.RestaurantId).Distinct();
 
             var restaurants = await _restaurantManager.GetBaseAsync(restaurantIds);
 
-            return orders.Select(order => new OrderVM 
+            var restaurantsDict = restaurants.ToDictionary(k => k.Id, v => v);
+
+            return orders.Select(order =>
             {
-                OrderId = order.Id,
-                Date = order.Date,
-                CreateDate = order.CreateDate,
-                Comment = order.Comment,
-                PersonCount = order.PersonCount,
-                Restaurant = restaurants.FirstOrDefault(f => f.Id == order.RestaurantId)
+                var orderVM = _mapper.Map<UserOrderVM>(order);
+
+                orderVM.Restaurant = restaurantsDict.GetValueOrDefault(order.RestaurantId);
+
+                return orderVM;
             });
         }
 
-        public async Task<IEnumerable<OrderVM>> GetHistoryAsync(int take, int skip, int userId)
+        private async Task<IEnumerable<RestaurantOrderVM>> ToRestaurantOrdersVMAsync(IEnumerable<OrderEntity> orders)
         {
-            var orders = await _ordersRepository.GetInactiveAsync(take, skip, userId);
             if (!orders.HasElement())
-                return Enumerable.Empty<OrderVM>();
+                return Enumerable.Empty<RestaurantOrderVM>();
 
-            var restaurantIds = orders.Select(s => s.RestaurantId).Distinct();
+            var userIds = orders.Select(s => s.UserId).Distinct();
 
-            var restaurants = await _restaurantManager.GetBaseAsync(restaurantIds);
+            var users = await _userManager.GetAsync(userIds);
 
-            return orders.Select(order => new OrderVM
+            var usersDict = users.ToDictionary(k => k.Id, v => v);
+
+            return orders.Select(order =>
             {
-                OrderId = order.Id,
-                Date = order.Date,
-                CreateDate = order.CreateDate,
-                Comment = order.Comment,
-                PersonCount = order.PersonCount,
-                Restaurant = restaurants.FirstOrDefault(f => f.Id == order.RestaurantId)
+                var orderVM = _mapper.Map<RestaurantOrderVM>(order);
+
+                orderVM.User = usersDict.GetValueOrDefault(order.RestaurantId);
+
+                return orderVM;
             });
         }
     }

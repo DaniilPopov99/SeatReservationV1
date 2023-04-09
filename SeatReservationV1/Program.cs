@@ -14,6 +14,7 @@ builder.Services.AddOptions(builder.Configuration);
 builder.Services.AddRepositories(connectionString);
 builder.Services.AddManagers();
 builder.Services.AddMicroservices();
+builder.Services.AddMapping();
 
 var app = builder.Build();
 

@@ -11,14 +11,14 @@ namespace SeatReservationCore.Helpers.HttpHelper
                 return HttpResultFactory.CreateEmptyResult(response.StatusCode);
 
             var responseBody = await response.Content.ReadAsStringAsync();
-            if (String.IsNullOrEmpty(responseBody))
+            if (string.IsNullOrEmpty(responseBody))
                 return HttpResultFactory.CreateEmptyResult(response.StatusCode);
 
             if (int.TryParse(responseBody, out int code))
                 return HttpResultFactory.CreateErrors(response.StatusCode, code);
             try
             {
-                var modelErrorCodes = JsonConvert.DeserializeObject<IEnumerable<Int32>>(responseBody);
+                var modelErrorCodes = JsonConvert.DeserializeObject<IEnumerable<int>>(responseBody);
                 if (modelErrorCodes != null)
                     return HttpResultFactory.CreateErrors(response.StatusCode, modelErrorCodes);
             }
@@ -54,7 +54,7 @@ namespace SeatReservationCore.Helpers.HttpHelper
 
             try
             {
-                var modelErrorCodes = JsonConvert.DeserializeObject<IEnumerable<Int32>>(responseBody);
+                var modelErrorCodes = JsonConvert.DeserializeObject<IEnumerable<int>>(responseBody);
                 if (modelErrorCodes != null)
                     return HttpResultFactory.CreateErrors<TResult>(response.StatusCode, modelErrorCodes);
             }
@@ -62,7 +62,7 @@ namespace SeatReservationCore.Helpers.HttpHelper
             {
                 try
                 {
-                    return HttpResultFactory.CreateResult<TResult>(JsonConvert.DeserializeObject<TResult>(responseBody), response.StatusCode);
+                    return HttpResultFactory.CreateResult(JsonConvert.DeserializeObject<TResult>(responseBody), response.StatusCode);
                 }
                 catch
                 {

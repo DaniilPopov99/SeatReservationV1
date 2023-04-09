@@ -12,6 +12,6 @@ namespace SeatReservationCore.Helpers.HttpHelper
             StatusCode = statusCode;
         }
 
-        public virtual IActionResult ToResult() => new StatusCodeResult((Int32)StatusCode);
+        public virtual IActionResult ToResult() => new StatusCodeResult((int)StatusCode);
     }
 }

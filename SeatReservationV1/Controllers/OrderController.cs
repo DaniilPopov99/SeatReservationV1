@@ -15,14 +15,7 @@ namespace SeatReservationV1.Controllers
             _orderManager = orderManager;
         }
 
-        [HttpPost(nameof(Create))]
-        public async Task<IActionResult> Create([FromBody, Required] CreateOrderVM createModel, [FromHeader] int userId)
-        {
-            return await Execute(async () =>
-            {
-                return Ok(await _orderManager.CreateAsync(createModel, GetUserId()));
-            });
-        }
+        #region Get
 
         [HttpGet(nameof(GetActive))]
         public async Task<IActionResult> GetActive([FromHeader] int userId)
@@ -41,5 +34,38 @@ namespace SeatReservationV1.Controllers
                 return Ok(await _orderManager.GetHistoryAsync(take, skip, GetUserId()));
             });
         }
+
+        [HttpGet(nameof(GetActiveByRestaurantId) + "/{take}/{skip}/{restaurantId}")]
+        public async Task<IActionResult> GetActiveByRestaurantId([FromRoute, Range(1, int.MaxValue)] int take, [FromRoute, Range(0, int.MaxValue)] int skip, [FromRoute, Range(0, int.MaxValue)] int restaurantId)
+        {
+            return await Execute(async () =>
+            {
+                return Ok(await _orderManager.GetActiveByRestaurantIdAsync(take, skip, restaurantId));
+            });
+        }
+
+        [HttpGet(nameof(GetInactiveByRestaurantId) + "/{take}/{skip}/{restaurantId}")]
+        public async Task<IActionResult> GetInactiveByRestaurantId([FromRoute, Range(1, int.MaxValue)] int take, [FromRoute, Range(0, int.MaxValue)] int skip, [FromRoute, Range(0, int.MaxValue)] int restaurantId)
+        {
+            return await Execute(async () =>
+            {
+                return Ok(await _orderManager.GetInactiveByRestaurantIdAsync(take, skip, restaurantId));
+            });
+        }
+
+        #endregion
+
+        #region Post
+
+        [HttpPost(nameof(Create))]
+        public async Task<IActionResult> Create([FromBody, Required] CreateOrderVM createModel, [FromHeader] int userId)
+        {
+            return await Execute(async () =>
+            {
+                return Ok(await _orderManager.CreateAsync(createModel, GetUserId()));
+            });
+        }
+
+        #endregion
     }
 }

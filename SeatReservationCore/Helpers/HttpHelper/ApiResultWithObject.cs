@@ -15,7 +15,8 @@ namespace SeatReservationCore.Helpers.HttpHelper
         public override IActionResult ToResult()
         {
             var objectResult = new ObjectResult(ResultModel);
-            objectResult.StatusCode = (Int32)StatusCode;
+            objectResult.StatusCode = (int)StatusCode;
+
             return objectResult;
         }
     }

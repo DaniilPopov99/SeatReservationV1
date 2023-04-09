@@ -43,5 +43,62 @@ namespace SeatReservationV1.Repositories
 
             return await Db.QueryAsync<OrderEntity>(sqlCommand);
         }
+
+        public async Task<IEnumerable<OrderEntity>> GetActiveByRestaurantAsync(int take, int skip, int restaurantId)
+        {
+            var sqlCommand = new CommandDefinition($@"
+                SELECT *
+                FROM Orders
+                WHERE RestaurantId = @restaurantId
+                    AND IsActive = 1
+                ORDER BY Date
+                OFFSET @skip ROWS
+                FETCH NEXT @take ROWS ONLY;",
+                new
+                {
+                    @take = take,
+                    @skip = skip,
+                    @restaurantId = restaurantId
+                });
+
+            return await Db.QueryAsync<OrderEntity>(sqlCommand);
+        }
+
+        public async Task<IEnumerable<OrderEntity>> GetInactiveByRestaurantAsync(int take, int skip, int restaurantId)
+        {
+            var sqlCommand = new CommandDefinition($@"
+                SELECT *
+                FROM Orders
+                WHERE RestaurantId = @restaurantId
+                    AND IsActive = 0
+                ORDER BY Date DESC
+                OFFSET @skip ROWS
+                FETCH NEXT @take ROWS ONLY;",
+                new
+                {
+                    @take = take,
+                    @skip = skip,
+                    @restaurantId = restaurantId
+                });
+
+            return await Db.QueryAsync<OrderEntity>(sqlCommand);
+        }
+
+        public async Task<int> GetCountByUserAndRestaurantAsync(int userId, int restaurantId)
+        {
+            var sqlCommand = new CommandDefinition($@"
+                SELECT 
+                    COUNT(Id)
+                FROM Orders
+                WHERE UserId = @userId
+                    AND RestaurantId = @restaurantId",
+                new
+                {
+                    @userId = userId,
+                    @restaurantId = restaurantId
+                });
+
+            return await Db.QueryFirstOrDefaultAsync<int>(sqlCommand);
+        }
     }
 }

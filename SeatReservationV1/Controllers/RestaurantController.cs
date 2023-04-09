@@ -15,6 +15,21 @@ namespace SeatReservationV1.Controllers
             _restaurantManager = restaurantManager;
         }
 
+        #region Get
+
+        [HttpGet(nameof(GetFavorites) + "/{take}/{skip}")]
+        public async Task<IActionResult> GetFavorites([FromRoute, Range(1, int.MaxValue)] int take, [FromRoute, Range(0, int.MaxValue)] int skip, [FromHeader] int userId)
+        {
+            return await Execute(async () =>
+            {
+                return Ok(await _restaurantManager.GetFavoritesAsync(take, skip, GetUserId()));
+            });
+        }
+
+        #endregion
+
+        #region Post
+
         [HttpPost(nameof(Create))]
         public async Task<IActionResult> Create([FromBody, Required] CreateRestaurantVM createModel)
         {
@@ -53,13 +68,6 @@ namespace SeatReservationV1.Controllers
             });
         }
 
-        [HttpGet(nameof(GetFavorites) + "/{take}/{skip}")]
-        public async Task<IActionResult> GetFavorites([FromRoute, Range(1, int.MaxValue)] int take, [FromRoute, Range(0, int.MaxValue)] int skip, [FromHeader] int userId)
-        {
-            return await Execute(async () =>
-            {
-                return Ok(await _restaurantManager.GetFavoritesAsync(take, skip, GetUserId()));
-            });
-        }
+        #endregion
     }
 }
