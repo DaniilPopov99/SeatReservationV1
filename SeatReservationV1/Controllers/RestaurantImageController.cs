@@ -17,27 +17,7 @@ namespace SeatReservationV1.Controllers
             _restaurantImageManager = restaurantImageManager;
         }
 
-        [HttpPost(nameof(Upload))]
-        public async Task<IActionResult> Upload()
-        {
-            return await Execute(async () =>
-            {
-                if (!MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
-                {
-                    throw new Exception($"Expected a multipart request, but got {Request.ContentType}");
-                }
-
-                var reader = GetMultipartReaderFromRequestBody();
-                var section = await reader.ReadNextSectionAsync();
-                var fileContent = await MultipartRequestHelper.GetMultipartSectionContentBytes(section);
-
-                return Ok(await _restaurantImageManager.UploadAsync(new UploadImageVM 
-                {
-                    Name = GetByKey("FileName"),
-                    Content = fileContent
-                }));
-            });
-        }
+        #region Get
 
         [HttpGet(nameof(Get) + "/{restaurantId}/{guid}")]
         public async Task<IActionResult> Get([FromRoute, Range(1, int.MaxValue)] int restaurantId, [FromRoute] Guid guid)
@@ -68,5 +48,33 @@ namespace SeatReservationV1.Controllers
                 return File(result, "image/jpeg");
             });
         }
+
+        #endregion
+
+        #region Post
+
+        [HttpPost(nameof(Upload))]
+        public async Task<IActionResult> Upload()
+        {
+            return await Execute(async () =>
+            {
+                if (!MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
+                {
+                    throw new Exception($"Expected a multipart request, but got {Request.ContentType}");
+                }
+
+                var reader = GetMultipartReaderFromRequestBody();
+                var section = await reader.ReadNextSectionAsync();
+                var fileContent = await MultipartRequestHelper.GetMultipartSectionContentBytes(section);
+
+                return Ok(await _restaurantImageManager.UploadAsync(new UploadImageVM 
+                {
+                    Name = GetByKey("FileName"),
+                    Content = fileContent
+                }));
+            });
+        }
+
+        #endregion
     }
 }

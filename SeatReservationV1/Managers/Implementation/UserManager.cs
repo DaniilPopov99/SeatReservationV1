@@ -1,4 +1,6 @@
-﻿using SeatReservationV1.Managers.Interfaces;
+﻿using AutoMapper;
+using SeatReservationCore.Extensions;
+using SeatReservationV1.Managers.Interfaces;
 using SeatReservationV1.Models.Entities;
 using SeatReservationV1.Models.Presentation;
 using SeatReservationV1.Repositories;
@@ -7,24 +9,25 @@ namespace SeatReservationV1.Managers.Implementation
 {
     public class UserManager : IUserManager
     {
-        private readonly UsersRepository _usersRepository;
+        private readonly IMapper _mapper;
 
-        public UserManager(UsersRepository usersRepository)
+        private readonly UsersRepository _usersRepository;
+        private readonly OrdersRepository _ordersRepository;
+
+        public UserManager(IMapper mapper,
+            UsersRepository usersRepository,
+            OrdersRepository ordersRepository)
         {
+            _mapper = mapper;
             _usersRepository = usersRepository;
+            _ordersRepository = ordersRepository;
         }
 
         public async Task<int> RegisterAsync(RegisterUserVM userVM)
         {
-            return await _usersRepository.CreateAsync(new UserEntity 
-            {
-                Name = userVM.Name,
-                Surname = userVM.Surname,
-                Patronymic = userVM.Patronymic,
-                PhoneNumber = userVM.PhoneNumber,
-                Password = userVM.Password,
-                CreateDate = DateTime.UtcNow
-            });
+            var userEntity = _mapper.Map<UserEntity>(userVM);
+
+            return await _usersRepository.CreateAsync(userEntity);
         }
 
         public async Task<int> LoginAsync(string phoneNumber, string password)
@@ -46,8 +49,38 @@ namespace SeatReservationV1.Managers.Implementation
             {
                 Id = user.Id,
                 PhoneNumber = user.PhoneNumber,
-                FIO = user.Surname + ' ' + user.Name + (!string.IsNullOrEmpty(user.Patronymic) ? $" {user.Patronymic}" : string.Empty)
+                FIO = user.Surname + ' ' + user.Name + (!string.IsNullOrEmpty(user.Patronymic) ? $" {user.Patronymic}" : string.Empty) //TODO сделать хелпер под это
             };
+        }
+
+        public async Task<IEnumerable<UserVM>> GetAsync(IEnumerable<int> userIds)
+        {
+            var users = await _usersRepository.GetAsync(userIds);
+            if (!users.HasElement())
+                throw new Exception();
+
+            return users.Select(user => new UserVM
+            {
+                Id = user.Id,
+                PhoneNumber = user.PhoneNumber,
+                FIO = user.Surname + ' ' + user.Name + (!string.IsNullOrEmpty(user.Patronymic) ? $" {user.Patronymic}" : string.Empty) //TODO сделать хелпер под это
+            });
+        }
+
+        public async Task<UserVMAndOrdersCount> GetUserAndOrdersCountAsync(int userId, int restaurantId)
+        {
+            var userTask = GetAsync(userId);
+            var ordersCountTask = _ordersRepository.GetCountByUserAndRestaurantAsync(userId, restaurantId);
+
+            var user = await userTask;
+
+            var result = _mapper.Map<UserVMAndOrdersCount>(user);
+
+            var ordersCount = await ordersCountTask;
+
+            result.OrdersCount = ordersCount;
+
+            return result;
         }
     }
 }

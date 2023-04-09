@@ -1,4 +1,5 @@
-﻿using SeatReservationCore.Extensions;
+﻿using AutoMapper;
+using SeatReservationCore.Extensions;
 using SeatReservationCore.Helpers;
 using SeatReservationV1.Managers.Interfaces;
 using SeatReservationV1.Microservices.Interfaces;
@@ -6,7 +7,6 @@ using SeatReservationV1.Models.Entities;
 using SeatReservationV1.Models.Options;
 using SeatReservationV1.Models.Presentation;
 using SeatReservationV1.Repositories;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 
@@ -14,6 +14,8 @@ namespace SeatReservationV1.Managers.Implementation
 {
     public class RestaurantManager : IRestaurantManager
     {
+        private readonly IMapper _mapper;
+
         private readonly AppSettings _appSettings;
 
         private readonly ISimilarImagesMicroservice _similarImagesMicroservice;
@@ -22,12 +24,14 @@ namespace SeatReservationV1.Managers.Implementation
         private readonly ImagesToRestaurantsRepository _imagesToRestaurantsRepository;
         private readonly FavoritesRestaurantsRepository _favoritesRestaurantsRepository;
 
-        public RestaurantManager(AppSettings appSettings,
+        public RestaurantManager(IMapper mapper,
+            AppSettings appSettings,
             ISimilarImagesMicroservice similarImagesMicroservice,
             RestaurantsRepository restaurantsRepository,
             ImagesToRestaurantsRepository imagesToRestaurantsRepository,
             FavoritesRestaurantsRepository favoritesRestaurantsRepository)
         {
+            _mapper = mapper;
             _appSettings = appSettings;
             _similarImagesMicroservice = similarImagesMicroservice;
             _restaurantsRepository = restaurantsRepository;
@@ -37,16 +41,9 @@ namespace SeatReservationV1.Managers.Implementation
 
         public async Task<int> CreateAsync(CreateRestaurantVM createModel)
         {
-            var restaurantId = await _restaurantsRepository.CreateAsync(new RestaurantEntity
-            {
-                Name = createModel.Name,
-                Description = createModel.Description,
-                PhoneNumber = createModel.PhoneNumber,
-                Address = createModel.Address,
-                House = createModel.House,
-                CreateDate = DateTime.UtcNow,
-                IsActive = true
-            });
+            var restaurantEntity = _mapper.Map<RestaurantEntity>(createModel);
+
+            var restaurantId = await _restaurantsRepository.CreateAsync(restaurantEntity);
             
             if (createModel.ImageIds.HasElement())
             {
@@ -96,20 +93,7 @@ namespace SeatReservationV1.Managers.Implementation
                 ? restaurants
                 : await _restaurantsRepository.GetByFilterAsync(filter.Take, filter.Skip, filter.Filter);
 
-            if (!restaurants.HasElement())
-                return Enumerable.Empty<RestaurantVM>();
-
-            var restaurantIdsToImageGuids = await _imagesToRestaurantsRepository.GetRestaurantIdsToImageGuidsAsync(restaurants.Select(s => s.Id));
-
-            return restaurants.Select(restaurant => new RestaurantVM 
-            {
-                Id = restaurant.Id,
-                Name = restaurant.Name,
-                Description=restaurant.Description,
-                FullAddress = restaurant.Address + ' ' + restaurant.House,
-                PhoneNumber = restaurant.PhoneNumber,
-                ImageUrl = restaurantIdsToImageGuids.Where(w => w.Key == restaurant.Id).Select(s => RestaurantImageHelper.GetRestaurantImageUrl(restaurant.Id, _appSettings.FileService, s.Value)).FirstOrDefault()
-            });
+            return await ToRestaurantsVMAsync(restaurants);
         }
 
         public async Task<IEnumerable<RestaurantBaseVM>> GetBaseAsync(IEnumerable<int> restaurantIds)
@@ -124,7 +108,7 @@ namespace SeatReservationV1.Managers.Implementation
             return restaurants.Select(restaurant => new RestaurantBaseVM(
                 restaurant.Id, 
                 restaurant.Name, 
-                restaurant.Address + ' ' + restaurant.House,
+                restaurant.Address + ' ' + restaurant.House, //TODO сделать хелпер под это
                 restaurantIdsToImageGuids.Where(w => w.Key == restaurant.Id).Select(s => RestaurantImageHelper.GetRestaurantImageUrl(restaurant.Id, _appSettings.FileService, s.Value)).FirstOrDefault()));
         }
 
@@ -149,16 +133,26 @@ namespace SeatReservationV1.Managers.Implementation
 
             var restaurants = await _restaurantsRepository.GetByIdsAsync(favoritesRestaurantIds);
 
+            return await ToRestaurantsVMAsync(restaurants);
+        }
+
+        private async Task<IEnumerable<RestaurantVM>> ToRestaurantsVMAsync(IEnumerable<RestaurantEntity> restaurants)
+        {
+            if (!restaurants.HasElement())
+                return Enumerable.Empty<RestaurantVM>();
+
             var restaurantIdsToImageGuids = await _imagesToRestaurantsRepository.GetRestaurantIdsToImageGuidsAsync(restaurants.Select(s => s.Id));
 
-            return restaurants.Select(restaurant => new RestaurantVM
+            return restaurants.Select(restaurant =>
             {
-                Id = restaurant.Id,
-                Name = restaurant.Name,
-                Description = restaurant.Description,
-                FullAddress = restaurant.Address + ' ' + restaurant.House,
-                PhoneNumber = restaurant.PhoneNumber,
-                ImageUrl = restaurantIdsToImageGuids.Where(w => w.Key == restaurant.Id).Select(s => RestaurantImageHelper.GetRestaurantImageUrl(restaurant.Id, _appSettings.FileService, s.Value)).FirstOrDefault()
+                var restaurantVM = _mapper.Map<RestaurantVM>(restaurant);
+
+                restaurantVM.ImageUrl = restaurantIdsToImageGuids
+                    .Where(w => w.Key == restaurant.Id)
+                    .Select(s => RestaurantImageHelper.GetRestaurantImageUrl(restaurant.Id, _appSettings.FileService, s.Value))
+                    .FirstOrDefault();
+
+                return restaurantVM;
             });
         }
     }

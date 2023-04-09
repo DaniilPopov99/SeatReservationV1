@@ -11,41 +11,21 @@ namespace SeatReservationCore.Helpers.HttpHelper
                 case HttpStatusCode.OK:
                 case HttpStatusCode.NoContent:
                     return response.ResultModel;
+
                 case HttpStatusCode.NotFound:
-                    {
-                        if (response.ErrorModel?.FirstOrDefault() != null)
-                        {
-                            throw new Exception();
-                        }
-                        throw new Exception();
-                    }
                 case HttpStatusCode.Forbidden:
-                    {
-                        if (response.ErrorModel?.FirstOrDefault() != null)
-                        {
-                            throw new Exception();//(response.ErrorModel.FirstOrDefault());
-                        }
-
-                        throw new Exception();
-                    }
                 case HttpStatusCode.Conflict:
-                    {
-                        if (response.ErrorModel?.FirstOrDefault() != null)
-                            throw new Exception();
-
-                        throw new Exception();//(response.ResultModel);
-                    }
                 case HttpStatusCode.BadRequest:
-                    {
-                        if (response.ErrorModel?.FirstOrDefault() != null)
-                            throw new Exception();
-                        else
-                            throw new Exception();
-                    }
+                    return response.ErrorModel?.FirstOrDefault() != null
+                        ? throw new Exception()
+                        : throw new Exception();
+
                 case HttpStatusCode.InternalServerError:
                     throw new Exception(nameof(response));
+
                 case HttpStatusCode.Unauthorized:
                     throw new Exception();
+
                 default:
                     throw new ArgumentException(nameof(response));
             }
@@ -62,29 +42,21 @@ namespace SeatReservationCore.Helpers.HttpHelper
                 case HttpStatusCode.NoContent:
                 case HttpStatusCode.Accepted:
                     return null;
+
                 case HttpStatusCode.NotFound:
-                    if (int.TryParse(response.ResultModel?.FirstOrDefault().ToString(), out int notFoundErrorCode))
-                        return new Exception();
-                    else
-                        return new Exception();
                 case HttpStatusCode.Forbidden:
-                    if (int.TryParse(response.ResultModel?.FirstOrDefault().ToString(), out int forbidErrorCode))
-                        return new Exception();//(forbidErrorCode);
-                    else
-                        return new Exception();
                 case HttpStatusCode.Conflict:
-                    return int.TryParse(response.ResultModel?.FirstOrDefault().ToString(), out int conflictErrorCode)
+                case HttpStatusCode.BadRequest:
+                    return int.TryParse(response.ResultModel?.FirstOrDefault().ToString(), out int errorCode)
                         ? new Exception()
                         : new Exception();
-                case HttpStatusCode.BadRequest:
-                    if (int.TryParse(response.ResultModel?.FirstOrDefault().ToString(), out int badRequestErrorCode))
-                        return new Exception();
-                    else
-                        return new Exception();
+
                 case HttpStatusCode.InternalServerError:
                     throw new Exception();
+
                 case HttpStatusCode.Unauthorized:
                     throw new Exception();
+
                 default:
                     return new ArgumentException(nameof(response));
             }
